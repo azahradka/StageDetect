@@ -73,7 +73,7 @@ def read_files_in_dir(folder, file_name, filter_val=None):
     return frame_list   #list of frames conaining directory and frame name
 
 '''calculate moving average for specified number of samples'''
-def movingaverage(self, mylist, N):
+def movingaverage(mylist, N):
     cumsum, moving_aves = [0], []
     
     for i, x in enumerate(mylist, 1):
@@ -193,6 +193,8 @@ class LinearModel_ransac:
     """linear system solved using linear least squares"""
 
     def estimate(self, data):
+        if 0 in data.shape:
+            return
         x = data[:, 0]
         y = data[:, 1]
         
@@ -1133,7 +1135,7 @@ class Histogram:
             plt.savefig(os.path.join(directory_output, 'histogram_water.jpg'),  dpi=600) 
             plt.close()
             
-        corr_hist = cv2.compareHist(hist_land, hist_water, cv2.cv.CV_COMP_CORREL)
+        corr_hist = cv2.compareHist(hist_land, hist_water, cv2.HISTCMP_CORREL)
         
         
         #check if more than one peak in histogram

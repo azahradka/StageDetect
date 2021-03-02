@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+working_dir = '/Users/azahradka/Projects/PhotoFlow/Test1'
+# working_dir = '/Users/azahradka/Projects/PhotoFlow/StageDetect_tutorial'
+
+
 __author__ = 'Anette Eltner'
 __contact__ = 'Anette.Eltner@tu-dresden.de'
 __copyright__ = '(c) Anette Eltner 2018'
@@ -440,23 +444,36 @@ class WaterlineTool:
         failing = True
         while failing:
             try:
-                dir_output = tkFileDialog.askdirectory(title='Output directory')
-                dir_output = dir_output + '/'
-                dir_imgCooGCP = tkFileDialog.askdirectory(title='Directory of GCP image coordinates')
-                dir_imgCooGCP = dir_imgCooGCP + '/'
+                print('Output directory')
+                # dir_output = tkFileDialog.askdirectory(title='Output directory')
+                # dir_output = dir_output + '/'
+                dir_output = os.path.join(working_dir, 'waterline3D/')
+                print('Directory of GCP image coordinates')
+                # dir_imgCooGCP = tkFileDialog.askdirectory(title='Directory of GCP image coordinates')
+                # dir_imgCooGCP = dir_imgCooGCP + '/'
+                dir_imgCooGCP = os.path.join(working_dir, 'GCP_matched/')
                 
                 if self.waterlineApprox3D.get() == 1:
+                    print('File with initial waterline')
                     waterline_file = tkFileDialog.askopenfilename(title='File with initial waterline', 
                                                                   filetypes=[('Text file (*.txt)', '*.txt')],initialdir=os.getcwd())
                 else:
-                    directory_waterline = tkFileDialog.askdirectory(title='Directory of waterlines') + '/'
+                    print('Directory of waterlines')
+                    # directory_waterline = tkFileDialog.askdirectory(title='Directory of waterlines') + '/'
+                    directory_waterline = os.path.join(working_dir, 'waterline/')
                     
-                GPC_coo_file = tkFileDialog.askopenfilename(title='File with GCP coordinates (3D)', 
-                                                            filetypes=[('Text file (*.txt)', '*.txt')],initialdir=os.getcwd())
-                ior_file = tkFileDialog.askopenfilename(title='Read interior orientation file', 
-                                                        filetypes=[('Text file (*.txt)', '*.txt')],initialdir=os.getcwd())
-                model_3Dpts = tkFileDialog.askopenfilename(title='Read 3D point cloud (XYZ)', 
-                                                           filetypes=[('Text file (*.txt)', '*.txt')],initialdir=os.getcwd())
+                print('File with GCP coordinates (3D)')
+                # GPC_coo_file = tkFileDialog.askopenfilename(title='File with GCP coordinates (3D)', 
+                #                                             filetypes=[('Text file (*.txt)', '*.txt')],initialdir=os.getcwd())
+                GPC_coo_file = os.path.join(working_dir, 'GCP_coordinates.txt')
+                print('Read interior orientation file')
+                # ior_file = tkFileDialog.askopenfilename(title='Read interior orientation file', 
+                #                                         filetypes=[('Text file (*.txt)', '*.txt')],initialdir=os.getcwd())
+                ior_file = os.path.join(working_dir, 'CameraCalibration.txt')
+                print('Read 3D point cloud (XYZ)')
+                # model_3Dpts = tkFileDialog.askopenfilename(title='Read 3D point cloud (XYZ)', 
+                #                                            filetypes=[('Text file (*.txt)', '*.txt')],initialdir=os.getcwd())
+                model_3Dpts = os.path.join(working_dir, 'PointCloud_3D.txt')
 
                 failing = False
             
@@ -510,7 +527,7 @@ class WaterlineTool:
             ck = -1 * interior_orient.ck / pixel_size
             xh = interior_orient.resolution_x / 2
             yh = interior_orient.resolution_y / 2
-            cam_file_forOpenCV = [ck, xh, yh, 0, 0, 0, 0, 0]            
+            cam_file_forOpenCV = [ck, xh, yh, 0, 0, 0, 0, 0]
             
             #read point cloud
             pt_cloud_table = pd.read_csv(model_3Dpts, header=None, index_col=False, delimiter=',')
@@ -567,7 +584,7 @@ class WaterlineTool:
                 #read water line if list of water lines
                 if self.waterlineApprox3D.get() == 0:
                     for waterline_file in waterline_files:
-                        if waterline_date == waterline_file[12:-4]:
+                        if waterline_date[:-3] == waterline_file[12:-4]:
                             waterline_table = pd.read_table(directory_waterline + waterline_file, header=None, delimiter=',')
                             waterline = np.asarray(waterline_table)
                             waterline_found = True
@@ -614,7 +631,10 @@ class WaterlineTool:
                     '''using RANSAC in OpenCV'''
                     #convert image measurements into pixels for opencv
                     img_pts_undist = img_measures.metric_to_pixel(img_pts_undist_metric, interior_orient)
-                    img_pts_undist = np.hstack((pts_ids, img_pts_undist))
+                    img_pts_undist = np.hstack([
+                        pts_ids,
+                        img_pts_undist.x.reshape(-1, 1),
+                        img_pts_undist.y.reshape(-1, 1)])
                     ImgGCPCoo_pix, _ = cl_2D_3D.assign_ImgToObj_Measurement(gcp_table, img_pts_undist)
                    
                     #get camera position with OpenCV
@@ -626,7 +646,7 @@ class WaterlineTool:
                     self.printTxt(exterior_approx)
                     self.dummy()
                     
-                    if inliers == None:
+                    if inliers is None:
                         inliers = [-999]
                         writer.writerow([waterline_date, position[0,0], position[1,0], position[2,0], '-'])
                     else:
@@ -822,9 +842,11 @@ class WaterlineTool:
         failing = True
         while failing:
             try:
+                print('Directory to search in')
                 directory_folders = tkFileDialog.askdirectory(title='Directory to search in') 
 #                 if type(directory_folders) == unicode:
 #                     directory_folders = directory_folders.encode('ascii','ignore')
+                print('Output Directory')
                 directory_results = tkFileDialog.askdirectory(title='Output Directory')
                 failing = False
             except Exception as e:
@@ -891,16 +913,19 @@ class WaterlineTool:
         failing = True
         while failing:  
             try:   
+                print('Output Directory')
                 directory_output = tkFileDialog.askdirectory(title='Output Directory') + '/'
-                
+                print('Directory images for template matching')
                 directory_img = tkFileDialog.askdirectory(title='Directory images for template matching') + '/'
                 
                 if self.save_img.get():
+                    print('Output directory images TM result')
                     directory_output_img = tkFileDialog.askdirectory(title='Output directory images TM result')+ '/'
                 
+                print('Open 1st template image')
                 img_start = tkFileDialog.askopenfilename(title='Open 1st template image', 
                                                          filetypes=[('Image file (*.jpg)', '*.jpg')],initialdir=os.getcwd())
-                
+                print('Open GCP img coordinates of 1st template')
                 imgCooGCP_file_start = tkFileDialog.askopenfilename(title='Open GCP img coordinates of 1st template', 
                                                          filetypes=[('Txt file (*.txt)', '*.txt')],initialdir=os.getcwd())
                 
@@ -1002,6 +1027,7 @@ class WaterlineTool:
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
             self.printTxt('template matching failed\n')
+            self.printTxt(e)
                             
         
     def getValuesFromTxtBox(self, parameter):
@@ -1020,8 +1046,10 @@ class WaterlineTool:
 
         failing = True
         while failing:
-            directory_image_folders = tkFileDialog.askdirectory(title='Open Images Directory') + '/'
-            
+            print('Open Images Directory')
+            #directory_image_folders = tkFileDialog.askdirectory(title='Open Images Directory') + '/'
+            directory_image_folders = os.path.join(working_dir, 'img_raw/')
+
             try:
                 '''search through directory for sub-directories'''
                 if os.path.isdir(directory_image_folders):
@@ -1074,17 +1102,20 @@ class WaterlineTool:
                 if self.waterline_approx_steady.get():
                     
                     #read file
-                    waterlines_approx = tkFileDialog.askopenfilename(title='Open waterline approximated', filetypes=[('Txt files (*.txt)',
-                                                                                                                      '*.txt')],initialdir=os.getcwd())
-                    
+                    print('Open waterline approximated')
+                    # waterlines_approx = tkFileDialog.askopenfilename(title='Open waterline approximated', filetypes=[('Txt files (*.txt)',
+                    #                                                                                                   '*.txt')],initialdir=os.getcwd())
+                    waterlines_approx = os.path.join(working_dir, 'waterline_approx.txt')
                     self.printTxt(waterlines_approx + ' water line file loaded\n')
             
                     return waterlines_approx
                 
                 else:
                     #read directory
-                    directory_waterline_approx = tkFileDialog.askdirectory(title='Open waterlines approximated directory') + '/'
-                    
+                    print('Open waterlines approximated directory')
+                    #directory_waterline_approx = tkFileDialog.askdirectory(title='Open waterlines approximated directory') + '/'
+                    directory_waterline_approx = os.path.join(working_dir, 'water_line_approx/')
+
                     #get files in directory
                     waterlines_approx = []
                     for waterline_approx_file in os.listdir(directory_waterline_approx):
@@ -1160,7 +1191,10 @@ class WaterlineTool:
             failing = True
             while failing:
                 try:
-                    directory_results = tkFileDialog.askdirectory(title='Open Output Directory') + '/'
+                    print('Open Output Directory')
+                    #directory_results = tkFileDialog.askdirectory(title='Open Output Directory') + '/'
+                    directory_results = os.path.join(working_dir, 'waterline/')
+
                     failing = False
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1286,7 +1320,9 @@ class WaterlineTool:
                     mean_stills, tempText_stills  = imgProc.tempTexture(image_list, output_results_dir, border_mask_file, False)
                     
                     #estimate waterline
-                    if not self.waterline_approx_steady.get():
+                    if self.waterline_approx_steady.get():
+                        waterlineApproxRead = waterlines_approx
+                    else:
                         waterlineApproxRead = None
                         for waterline_approx_file in waterlines_approx:
                             if waterline_approx_file[1][:-21] == masterImg[1][:-6]:        

@@ -27,8 +27,9 @@ import pandas as pd
 import scipy.spatial
 import cv2
 import math, numpy as np
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use("Qt5Agg")  # TODO: set environvar MPLBACKEND=TkAgg
+import matplotlib.pyplot as plt
 
 
 #drop duplicate 3D points
@@ -97,7 +98,7 @@ class camera_interior:
 class Pt3D:
     
     #3D point (can include RGB information)
-    def __init__(self):
+    def __init__(self, rgb=False):
 
         self.X = None
         self.Y = None
@@ -107,7 +108,7 @@ class Pt3D:
         self.G = None
         self.B = None  
         
-        self.rgb = False
+        self.rgb = rgb
     
     #assign coordinates to 3D point    
     def read_imgPts_3D(self, pts_3D):
@@ -119,7 +120,7 @@ class Pt3D:
         if self.rgb == True:
             self.R = pts_3D[:,3]
             self.G = pts_3D[:,4]
-            self.B = pts_3D[:,5]                   
+            self.B = pts_3D[:,5]
                 
 
 class PtImg:
@@ -482,7 +483,7 @@ class TwoD_to_ThreeD:
                 
         '''resolve for exterior camera parameters'''
         #solve for exterior orientation
-        rvec_solved, tvec_solved, inliers = cv2.solvePnPRansac(gcp_coos, img_pts, camMatrix, distCoeff, reprojectionError) # iterationsCount=2000, reprojectionError=5
+        _, rvec_solved, tvec_solved, inliers = cv2.solvePnPRansac(gcp_coos, img_pts, camMatrix, distCoeff, reprojectionError) # iterationsCount=2000, reprojectionError=5
     #     if not inliers == None:
     #         print('numer of used points for RANSAC PNP: ' + str(len(inliers)))
     
@@ -525,8 +526,8 @@ class TwoD_to_ThreeD:
                 
         if point_cloud.rgb:
             point_cloud_trans_rgb = np.hstack((point_cloud_trans, point_cloudRGB))
-            point_cloud_img = Pt3D()
-            point_cloud_img.read_imgPts_3D(point_cloud_trans_rgb)           
+            point_cloud_img = Pt3D(rgb=True)
+            point_cloud_img.read_imgPts_3D(point_cloud_trans_rgb[:,(0,1,2,4,5,6)])
         else:        
             point_cloud_img = Pt3D()
             point_cloud_img.read_imgPts_3D(point_cloud_trans)
@@ -549,8 +550,8 @@ class TwoD_to_ThreeD:
         else:
             df_points = pd.DataFrame(self.coos_to_mat(point_cloud))
         df_points = df_points.loc[df_points[2] > 0] 
-        
-        pt3D = Pt3D()
+
+        pt3D = Pt3D(rgb=point_cloud.rgb)
         pt3D.read_imgPts_3D(np.asarray(df_points))
 
         del df_points
@@ -576,13 +577,13 @@ class TwoD_to_ThreeD:
         ptCloud_img = pt3D
     
         if plot_results:
-            if point_cloud.shape[1] > 3:
+            if point_cloud.rgb:
                 rgb = self.rgb_to_mat(ptCloud_img) / 256
             _, ax = plt.subplots()
             if point_cloud.rgb:
-                ax.scatter(x, y, s=5, edgecolor=None, lw = 0, facecolors=rgb)
+                ax.scatter(x, y, s=2, edgecolor=None, lw = 0, facecolors=rgb)
             else:
-                ax.scatter(x, y, s=5, edgecolor=None, lw = 0)
+                ax.scatter(x, y, s=2, edgecolor=None, lw = 0)
             plt.title('3D point cloud in image space')
             plt.show()
         
@@ -698,7 +699,7 @@ class TwoD_to_ThreeD:
     #     if dist_to_pz_xy == None:
     #         return NN_points, None, None
     
-        if NN_points  == None:
+        if NN_points is None:
             NN_points_xyz = None
         else:
             NN_points_xyz = Pt3D()

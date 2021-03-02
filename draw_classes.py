@@ -72,6 +72,7 @@ class Drawing:
         dpi = 600
         
         set_markersize = markSize
+        set_markersize = 1
         
         fontProperties_text = {'size' : fontSize, 
                                'family' : 'serif'}
@@ -87,11 +88,11 @@ class Drawing:
         if switched:
             ax.plot([p[1] for p in image_points],
                     [p[0] for p in image_points],
-                    marker='o', ms=set_markersize, color='green', markeredgecolor='green', markeredgewidth=1)
+                    marker='o', ms=set_markersize, color='red', markeredgecolor='red', markeredgewidth=1)
         else:
             ax.plot([p[0] for p in image_points],
                      [p[1] for p in image_points],
-                     marker='o', ms=set_markersize, color='red', markeredgecolor='black', markeredgewidth=1)
+                     marker='o', ms=set_markersize, color='red', markeredgecolor='red', markeredgewidth=1)
                    
         #ax.plot(image_points[:,0], image_points[:,1], "r.", markersize=set_markersize, markeredgecolor='black')
         if len(point_id) > 1:
@@ -102,7 +103,7 @@ class Drawing:
                 for label, xl, yl in zip(point_id, image_points[:,1], image_points[:,0]):
                     ax.annotate(str((label)), xy = (xl, yl), xytext=(xl+5, yl+1), color='blue', **fontProperties_text)           #str(int(label)
     
-        ax.imshow(image, cmap='gray', aspect='normal')
+        ax.imshow(image, cmap='gray', aspect='auto')
             
         return plt
     

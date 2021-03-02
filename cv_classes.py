@@ -284,7 +284,7 @@ class featureDetectMatch:
         image_gray = np.uint8(image_gray) 
         
         '''perform ORB'''
-        orb = cv2.ORB()
+        orb = cv2.ORB_create()
         keypoints, descriptors = orb.compute(image_gray, keypoints)
         
         return keypoints, descriptors

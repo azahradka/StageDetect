@@ -80,8 +80,8 @@ class templateMatch:
                 template_width_for_cut_left = np.int(pt[0])
                 cut_anchor_x = 0
             
-            template = img[pt[1]-template_height_for_cut_lower:pt[1]+template_height_for_cut_upper, 
-                           pt[0]-template_width_for_cut_left:pt[0]+template_width_for_cut_right]
+            template = img[int(pt[1]-template_height_for_cut_lower):int(pt[1]+template_height_for_cut_upper), 
+                           int(pt[0]-template_width_for_cut_left):int(pt[0]+template_width_for_cut_right)]
             
             #template_img = np.dstack((template_img, template))
             template_img.append(template)
